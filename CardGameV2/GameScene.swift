@@ -1,5 +1,12 @@
 import SpriteKit
 
+enum CardLevel :CGFloat {
+  case board = 10
+  case moving = 100
+  case enlarged = 200
+}
+
+
 class GameScene: SKScene {
 
   override func didMove(to view: SKView) {
@@ -17,5 +24,65 @@ class GameScene: SKScene {
     addChild(bear)
     
     }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            if let card = atPoint(location) as? Card {
+                card.position = location
+            }
+        }
+        
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+      for touch in touches {
+        let location = touch.location(in: self)
+        if let card = atPoint(location) as? Card {
+          card.zPosition = CardLevel.moving.rawValue
+            card.removeAction(forKey: "drop")
+            card.run(SKAction.scale(to: 1.3, duration: 0.25), withKey: "pickup")
+            
+          /*  let wiggleIn = SKAction.scaleX(to: 1.0, duration: 0.2)
+            let wiggleOut = SKAction.scaleX(to: 1.2, duration: 0.2)
+            let wiggle = SKAction.sequence([wiggleIn, wiggleOut])
+
+            card.run(SKAction.repeatForever(wiggle), withKey: "wiggle")
+*/
+            
+            let rotR = SKAction.rotate(byAngle: 0.15, duration: 0.2)
+            let rotL = SKAction.rotate(byAngle: -0.15, duration: 0.2)
+            let cycle = SKAction.sequence([rotR, rotL, rotL, rotR])
+            let wiggle = SKAction.repeatForever(cycle)
+            card.run(wiggle, withKey: "wiggle")
+
+        }
+      }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+      for touch in touches {
+        let location = touch.location(in: self)
+        if let card = atPoint(location) as? Card {
+          card.zPosition = CardLevel.board.rawValue
+          card.removeFromParent()
+            card.removeAction(forKey: "pickup")
+            card.run(SKAction.scale(to: 1.0, duration: 0.25), withKey: "drop")
+            
+         /*   let wiggleIn = SKAction.scaleX(to: 1.0, duration: 0.2)
+            let wiggleOut = SKAction.scaleX(to: 1.2, duration: 0.2)
+            let wiggle = SKAction.sequence([wiggleIn, wiggleOut])
+
+            card.run(SKAction.repeatForever(wiggle), withKey: "wiggle") */
+
+        //    card.removeAction(forKey: "wiggle")
+            
+            card.run(SKAction.rotate(toAngle: 0, duration: 0.2), withKey:"rotate")
+            card.removeAction(forKey: "rotate")
+          addChild(card)
+        }
+      }
+    }
+
 
 }
